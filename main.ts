@@ -1,4 +1,5 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { KExport } from 'k-export'
 
 // Remember to rename these classes and interfaces!
 
@@ -17,7 +18,7 @@ export default class MyPlugin extends Plugin {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon('dice', 'Kiichi Website Builder', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			new Notice('This is a notice!');
 		});
@@ -26,7 +27,7 @@ export default class MyPlugin extends Plugin {
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		statusBarItemEl.setText('Kiichi Status Bar Text');
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -38,11 +39,21 @@ export default class MyPlugin extends Plugin {
 		});
 		// This adds an editor command that can perform some operation on the current editor instance
 		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
+			id: 'k-export',
+			name: 'Export Website',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
 				console.log(editor.getSelection());
 				editor.replaceSelection('Sample Editor Command');
+				
+				//https://github.com/ravimashru/obsidian-show-file-path/blob/main/main.ts
+				// somewhat it doesn't see the public method
+				console.log((this.app.vault.adapter as any).getBasePath()); //this.app.vault.adapter.basePath
+				const srcPath = (this.app.vault.adapter as any).getBasePath();
+				const tplPath = "~/Desktop/template"
+				const dstPath = "~/Desktip/publish"
+				const kex = new KExport(srcPath,tplPath,dstPath);
+				kex.start();
+				//new SampleModal(this.app).open();
 			}
 		});
 		// This adds a complex command that can check whether the current state of the app allows execution of the command
@@ -120,7 +131,7 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		containerEl.createEl('h2', {text: 'Settings for Kiichi plugin.'});
 
 		new Setting(containerEl)
 			.setName('Setting #1')

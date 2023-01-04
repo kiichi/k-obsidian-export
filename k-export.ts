@@ -28,24 +28,82 @@ class GenericItem {
 
     getHtml(){
         return Marked.parse(this.mdraw);
-        // return this.mdraw.split('\n').filter((x)=>x).map(line=>{
-        //     if (line.startsWith('# ')){
-        //         return `<h1>${line.replace('# ','')}</h1>`;
-        //     }
-        //     else if (line.startsWith('## ')){
-        //         return `<h2>${line.replace('## ','')}</h2>`;
-        //     }
-        //     else if (line.startsWith('### ')){
-        //         return `<h3>${line.replace('### ','')}</h3>`;
-        //     }
-        //     else if (line.startsWith('- ')){
-        //         return `<li>${line.replace('- ','')}</li>`;
-        //     }
-        //     else if (line.startsWith('- ')){
-        //         return `<li>${line.replace('- ','')}</li>`;
-        //     }
-        //     return `<p>${line}</p>`;
-        // }).join('\n');
+    }
+}
+
+class ArticleItem extends GenericItem {
+    title:string = '';
+    summary:string = '';
+    tags:string = '';
+    date:string = '';
+    image:string = '';
+    filePath:string = '';
+
+    constructor(inMDRaw:string, inDirPath:string, inFilePath:string){
+        super(inMDRaw);
+
+        const lines = this.mdraw.split('\n').filter((x)=>x);
+        let counter = 0;
+        let tmpSum = '';
+        for (let line of lines){
+            if (line.startsWith('# ')){
+                if (counter == 0){
+                    this.title = line.replace('# ','');
+                }
+                else {
+                    
+                }
+                counter++;
+            }
+            if (counter == 1){
+                if (line.startsWith('- Date:')){
+                    this.date = line.replace('- Date:','').trim();
+                }
+                else if (line.startsWith('- Tags:')){
+                    this.tags = line.replace('- Tags:','').trim();
+                }
+                else if (line.startsWith('![](')){
+                    const cleaned = line.replace('![](','').replace(')','');
+                    this.image =  path.join(inDirPath, cleaned);
+                }
+                else if (line.startsWith('# ')){
+                    // nothing
+                }
+                else {
+                    tmpSum += line;
+                }
+            }
+            
+        }
+        this.summary = (tmpSum.length > 300) ? tmpSum.substring(0,300) + ' &mldr; ' : tmpSum;
+        this.filePath = inFilePath;
+    }
+    getDate(){
+        return ((new Date(this.date)).getDate() + 1);
+    }
+    getMonth(){        
+        return (new Date(this.date)).toLocaleString('en-US', {month: 'short'}).toLocaleUpperCase();
+    }
+    getDateStr(){
+        return (new Date(this.date)).toLocaleDateString();
+    }
+    getRepeaterHtml(){
+        return `
+        <div class="col-md-4 bloglist ${this.tags.replace('#','')}">
+                <div class="post-content">
+                        <div class="post-image">
+                            <img src="${this.image}" alt="" draggable="false">
+                        </div>
+                        <div class="date-box"><span class="day">${this.getDate()}</span> <span class="month">${this.getMonth()}</span></div>
+                        <div class="post-text">
+                            <h3><a href="${this.filePath}">${this.title}</a></h3>
+                            ${this.summary}
+                            <br>
+                            <a href="${this.filePath}" class="btn-text">Read More</a>
+                        </div>
+                    </div>
+                </div>
+        `
     }
 }
 
@@ -60,13 +118,12 @@ class GalleryItem extends GenericItem {
     description:string = '';
     thumbnail:string = '';
     fullimage:string = '';
+    htmlpath:string = '';
 
-    constructor(inMDRaw:string, inRelativePath:string ){
+    constructor(inMDRaw:string, inRelativePath:string, inRelativeHtmlPath:string ){
         super(inMDRaw);
-        this.processGalleryInfo(inRelativePath);
-    }
 
-    private processGalleryInfo(relativePath:string){
+
         var data:any = {};
         var key = '';
         
@@ -112,8 +169,9 @@ class GalleryItem extends GenericItem {
         }
         
         const cleaned = data['Images'][0].replace('![](','').replace(')','');
-        this.thumbnail = path.join(relativePath, cleaned);
+        this.thumbnail = path.join(inRelativePath, cleaned);
         this.fullimage = this.thumbnail;
+        this.htmlpath = inRelativeHtmlPath;
     }
 
     getRepeaterHtml(){
@@ -125,11 +183,9 @@ class GalleryItem extends GenericItem {
                         <a href="${this.thumbnail}" data-type="prettyPhoto[gallery]">
                         <i class="fa fa-search icon-view"></i></a>
                     </span>
-                    <!-- 
                     <span class="icon">
-                        <i class="fa fa-align-justify fa-external-link icon-info" data-value="project-details-slider.html"></i>
+                        <a href="${this.htmlpath}"><i class="fa fa-align-justify fa-external-link icon-info"></i></a>
                     </span> 
-                    -->
                     <span class="pf_text">
                         <div class="project-name">${this.title}</div>
                         <div>Date: ${this.date}</div>
@@ -159,42 +215,49 @@ export class KExport {
 
     async start(){
         console.log("Export Started....");
+
+        ////////////////////////////////////////////////////////////////////////////////////////
+        // Generic
+        const genTplFilePath = path.join(this.tplPath,'generic.html');
+        const genTemplateHtml = await fs.promises.readFile(genTplFilePath,'utf-8');
         
         ////////////////////////////////////////////////////////////////////////////////////////
-        // Generate Works
+        // Works
         // 1. Gather all Meta Info and Generate single Thumbnail Gallery
         // 2. Generate individual page and dump the .html next to .md file.
         //    Individual page should cover full html conversion plus youtube or glb 
-        const genTplFilePath = path.join(this.tplPath,'generic.html');
 
         const workSrcPath = path.join(this.srcPath,'works');
         const workTplFilePath = path.join(this.tplPath,'works.html');
-        const workDstFilePath = path.join(this.dstPath,'works-beta.html');        
+        const workDstFilePath = path.join(this.dstPath,'works.html');        
 
         let repeaterHtmlArr = [];
         // Walk each .md files in works
         for await (const mdfilePath of this.getFiles(workSrcPath)) {
             const htmlFilePath = mdfilePath.replace('.md','.html');
-            const mdraw = await fs.promises.readFile(mdfilePath,'utf-8');
-            const genItem = new GenericItem(mdraw);            
+            //const mdraw = await fs.promises.readFile(mdfilePath,'utf-8');
+            // probably I don't have to create another obj here
+            //const genItem = new GenericItem(mdraw);
 
             //console.log(mdfilePath);
             // Build up thumbnail html repeater
-            const item = await this.getGalleryItem(mdfilePath,this.srcPath);
+            const contents = await fs.promises.readFile(mdfilePath,'utf-8');
+            // Calculate relative path - full path minus workfolder. 
+            // this is needed to point thumbnail image path from the root of website to works/ ... folder
+            const dirpath = path.dirname(mdfilePath);
+            const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
+            const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
+
+            const item = new GalleryItem(contents, relativeSrcDirPath, relativeHtmlPath); 
             repeaterHtmlArr.push(item.getRepeaterHtml());
 
             // Each MD -> HTML
-            const genTemplateHtml = await fs.promises.readFile(genTplFilePath,'utf-8');
-            let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,genItem.getHtml());
+            let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,item.getHtml());
             genOutputHtml = genOutputHtml.replace(/<!-- {{{COPYRIGHT}}} -->/g,'© Copyright '+(new Date()).getFullYear()+' - Kiichi Takeuchi');
             genOutputHtml = genOutputHtml.replace(/<!-- {{{CATEGORY}}} -->/g,'Works');
             genOutputHtml = genOutputHtml.replace(/<!-- {{{TITLE}}} -->/g,item.title);
             genOutputHtml = genOutputHtml.replace(/<!-- {{{SUBTITLE}}} -->/g,`(${item.date})`);
-            //genOutputHtml = genOutputHtml.replace(/<!-- {{{MDRAW}}} -->/g,`${genItem.mdraw}`); // https://github.com/markmap/markmap/tree/master/packages/markmap-autoloader
             await fs.promises.writeFile(htmlFilePath,genOutputHtml);
-            console.log(htmlFilePath);
-            //console.log(genOutputHtml);
-
         }
 
         // works.html
@@ -203,6 +266,48 @@ export class KExport {
         let galleryOutputHtml = galleryTemplateHtml.replace('<!-- {{{GALLERY}}} -->',repeaterHtml);
         galleryOutputHtml = galleryOutputHtml.replace('<!-- {{{COPYRIGHT}}} -->','© Copyright '+(new Date()).getFullYear()+' - Kiichi Takeuchi');
         await fs.promises.writeFile(workDstFilePath,galleryOutputHtml);
+
+        console.log(workDstFilePath)
+
+
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Articles
+        const articleSrcPath = path.join(this.srcPath,'articles');
+        const articleTplFilePath = path.join(this.tplPath,'articles.html');
+        const articleDstFilePath = path.join(this.dstPath,'articles.html');   
+        let repeaterArticleHtmlArr = [];
+        // Walk each .md files in works
+        for await (const mdfilePath of this.getFiles(articleSrcPath)) {
+            const htmlFilePath = mdfilePath.replace('.md','.html');
+            const contents = await fs.promises.readFile(mdfilePath,'utf-8');
+            // Calculate relative path - full path minus workfolder. 
+            // this is needed to point thumbnail image path from the root of website to works/ ... folder
+            const dirpath = path.dirname(mdfilePath);
+            const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
+            const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
+            const item = new ArticleItem(contents,relativeSrcDirPath, relativeHtmlPath);
+            
+            // Build up thumbnail html repeater            
+            repeaterArticleHtmlArr.push(item.getRepeaterHtml());
+
+            // Each MD -> HTML
+            let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,item.getHtml());
+            genOutputHtml = genOutputHtml.replace(/<!-- {{{COPYRIGHT}}} -->/g,'© Copyright '+(new Date()).getFullYear()+' - Kiichi Takeuchi');
+            genOutputHtml = genOutputHtml.replace(/<!-- {{{CATEGORY}}} -->/g,'Works');
+            genOutputHtml = genOutputHtml.replace(/<!-- {{{TITLE}}} -->/g,item.title);
+            genOutputHtml = genOutputHtml.replace(/<!-- {{{SUBTITLE}}} -->/g,`(${item.getDateStr()})`);
+            //genOutputHtml = genOutputHtml.replace(/<!-- {{{MDRAW}}} -->/g,`${genItem.mdraw}`); // https://github.com/markmap/markmap/tree/master/packages/markmap-autoloader
+            await fs.promises.writeFile(htmlFilePath,genOutputHtml);
+        }
+
+        // works.html
+        const repeaterArticleHtml = repeaterArticleHtmlArr.join('\n');        
+        const articleTemplateHtml = await fs.promises.readFile(articleTplFilePath,'utf-8');
+        let articleOutputHtml = articleTemplateHtml.replace('<!-- {{{ARTICLES}}} -->',repeaterArticleHtml);
+        articleOutputHtml = articleOutputHtml.replace('<!-- {{{COPYRIGHT}}} -->','© Copyright '+(new Date()).getFullYear()+' - Kiichi Takeuchi');
+        await fs.promises.writeFile(articleDstFilePath,articleOutputHtml);
+
         
 
         console.log("Export Ended....");
@@ -222,14 +327,5 @@ export class KExport {
         }
     }
 
-    async getGalleryItem(filepath:string, workfolder:string):Promise<GalleryItem>{        
-        // Read Contents from .md file
-        const contents = await fs.promises.readFile(filepath,'utf-8');
-        // Calculate relative path - full path minus workfolder. 
-        // this is needed to point thumbnail image path from the root of website to works/ ... folder
-        const dirpath = path.dirname(filepath);
-        const relativePath = dirpath.replace(workfolder,'');
-        let item = new GalleryItem(contents, relativePath); 
-        return Promise.resolve(item);
-    }
+    
 }

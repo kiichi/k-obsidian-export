@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { Marked, Renderer } from '@ts-stack/markdown';
 
-
 class MyRenderer extends Renderer {
   // image embed as 3-D viewer if the ext is .glb. add ./ for the path
   // https://doc.babylonjs.com/features/featuresDeepDive/babylonViewer/defaultViewerConfig

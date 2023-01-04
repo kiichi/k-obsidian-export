@@ -217,7 +217,7 @@ export class KExport {
 
         ////////////////////////////////////////////////////////////////////////////////////////
         // Generic
-        const genTplFilePath = path.join(this.tplPath,'generic.html');
+        const genTplFilePath = path.join(this.tplPath,'generic-template.html');
         const genTemplateHtml = await fs.promises.readFile(genTplFilePath,'utf-8');
         
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ export class KExport {
         //    Individual page should cover full html conversion plus youtube or glb 
 
         const workSrcPath = path.join(this.srcPath,'works');
-        const workTplFilePath = path.join(this.tplPath,'works.html');
+        const workTplFilePath = path.join(this.tplPath,'works-template.html');
         const workDstFilePath = path.join(this.dstPath,'works.html');        
 
         let repeaterHtmlArr = [];
@@ -257,7 +257,7 @@ export class KExport {
             genOutputHtml = genOutputHtml.replace(/<!-- {{{TITLE}}} -->/g,item.title);
             genOutputHtml = genOutputHtml.replace(/<!-- {{{SUBTITLE}}} -->/g,`(${item.date})`);
             await fs.promises.writeFile(htmlFilePath,genOutputHtml);
-        }
+        }        
 
         // works.html
         let repeaterHtml = repeaterHtmlArr.join('\n');        
@@ -273,7 +273,7 @@ export class KExport {
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Articles
         const articleSrcPath = path.join(this.srcPath,'articles');
-        const articleTplFilePath = path.join(this.tplPath,'articles.html');
+        const articleTplFilePath = path.join(this.tplPath,'articles-template.html');
         const articleDstFilePath = path.join(this.dstPath,'articles.html');   
         let repeaterArticleHtmlArr = [];
         // Walk each .md files in works

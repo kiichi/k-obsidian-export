@@ -78,13 +78,13 @@ class ArticleItem extends GenericItem {
         this.filePath = inFilePath;
     }
     getDate(){
-        return ((new Date(this.date)).getDate() + 1);
+        return ((new Date(this.date + ' ')).getDate());
     }
     getMonth(){        
-        return (new Date(this.date)).toLocaleString('en-US', {month: 'short'}).toLocaleUpperCase();
+        return (new Date(this.date + ' ')).toLocaleString('en-US', {month: 'short'}).toLocaleUpperCase();
     }
     getDateStr(){
-        return (new Date(this.date)).toLocaleDateString();
+        return (new Date(this.date + ' ')).toLocaleDateString();
     }
     getRepeaterHtml(){
         return `
@@ -247,6 +247,8 @@ export class KExport {
             const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
             const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
 
+            console.log(relativeSrcDirPath);
+
             const item = new GalleryItem(contents, relativeSrcDirPath, relativeHtmlPath); 
             repeaterHtmlArr.push(item.getRepeaterHtml());
 
@@ -287,8 +289,10 @@ export class KExport {
             const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
             const item = new ArticleItem(contents,relativeSrcDirPath, relativeHtmlPath);
             
-            // Build up thumbnail html repeater            
-            repeaterArticleHtmlArr.push(item.getRepeaterHtml());
+            // Build up thumbnail html repeater
+            if (item.title.toLowerCase().indexOf('(draft)') === -1){
+                repeaterArticleHtmlArr.push(item.getRepeaterHtml());
+            }
 
             // Each MD -> HTML
             let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,item.getHtml());

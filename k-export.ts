@@ -175,7 +175,7 @@ class GalleryItem extends GenericItem {
 
     getRepeaterHtml(){
         return `
-        <div class="item ${this.tags.replace('#','')}">
+        <div class="item ${this.tags.replace(/#/ig,'')}">
             <div class="picframe">
                 <span class="overlay">
                     <span class="icon">
@@ -233,6 +233,7 @@ export class KExport {
         let repeaterHtmlArr = [];
         // Walk each .md files in works
         for await (const mdfilePath of this.getFiles(workSrcPath)) {
+            console.log(mdfilePath, workSrcPath);
             const htmlFilePath = mdfilePath.replace('.md','.html');
             //const mdraw = await fs.promises.readFile(mdfilePath,'utf-8');
             // probably I don't have to create another obj here
@@ -247,7 +248,7 @@ export class KExport {
             const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
             const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
 
-            console.log(relativeSrcDirPath);
+            //console.log(relativeSrcDirPath);
 
             const item = new GalleryItem(contents, relativeSrcDirPath, relativeHtmlPath); 
             repeaterHtmlArr.push(item.getRepeaterHtml());

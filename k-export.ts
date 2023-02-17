@@ -140,6 +140,8 @@ class GalleryItem extends GenericItem {
     medium:string = '';
     dimensions:string = '';
     no:string = '';
+    ordnum:number = 0;
+    sold:boolean = false;
     description:string = '';
     thumbnail:string = '';
     fullimage:string = '';
@@ -148,10 +150,8 @@ class GalleryItem extends GenericItem {
     constructor(inMDRaw:string, inRelativePath:string, inRelativeHtmlPath:string ){
         super(inMDRaw);
 
-
         var data:any = {};
         var key = '';
-        
         const lines = this.mdraw.split('\n').filter((x)=>x);
 
         for (let line of lines){
@@ -190,6 +190,15 @@ class GalleryItem extends GenericItem {
             }
             else if (line.startsWith('- Tags:')){
                 this.tags = line.replace('- Tags:','').trim();
+                if (this.tags.indexOf('#sold') > -1){
+                    this.sold = true;
+                }
+            }
+            else if (line.startsWith('- OrdNum:')){
+                let tmpOrdNum = line.replace('- OrdNum:','').trim();
+                if (tmpOrdNum){
+                    this.ordnum = parseInt(tmpOrdNum);
+                }
             }
         }
                 
@@ -220,7 +229,8 @@ class GalleryItem extends GenericItem {
                         <div>Place: ${this.place}</div>
                         <div>Medium: ${this.description}</div>
                         <div>Dimensions: ${this.dimensions}</div>
-                        <div>No: ${this.no}</div>
+                        <div>${this.sold ? 'SOLD' : ''}</div>
+                        <!-- <div>No: ${this.no}</div> -->
                     </span>
                 </span>
 
@@ -280,8 +290,8 @@ export class KExport {
         }
 
 
-        // Let's sort! random factor for now.
-        workItems.sort((a:GalleryItem, b:GalleryItem)=>a.title.length-b.title.length);
+        // Let's sort! Look Into OrdNum field in meta data. Higher Number goes top.
+        workItems.sort((a:GalleryItem, b:GalleryItem)=>b.ordnum-a.ordnum);
 
         for(var i=0; i<workItems.length; i++){
             const item = workItems[i];
@@ -305,8 +315,6 @@ export class KExport {
 
         //console.log(workDstFilePath)
 
-
-
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Articles
         const articleSrcPath = path.join(this.srcPath,'articles');
@@ -326,7 +334,8 @@ export class KExport {
             
             // Build up thumbnail html repeater
             if (item.title.toLowerCase().indexOf('(draft)') === -1 &&
-                item.tags.toLocaleLowerCase().indexOf('#unlisted') === -1){
+                item.tags.toLocaleLowerCase().indexOf('#unlisted') === -1 &&
+                item.tags.toLocaleLowerCase().indexOf('#draft') === -1){
                 repeaterArticleHtmlArr.push(item.getRepeaterHtml());
             }
 
@@ -340,7 +349,7 @@ export class KExport {
             await fs.promises.writeFile(htmlFilePath,genOutputHtml);
         }
 
-        // works.html
+        // articles.html
         const repeaterArticleHtml = repeaterArticleHtmlArr.join('\n');        
         const articleTemplateHtml = await fs.promises.readFile(articleTplFilePath,'utf-8');
         let articleOutputHtml = articleTemplateHtml.replace('<!-- {{{ARTICLES}}} -->',repeaterArticleHtml);

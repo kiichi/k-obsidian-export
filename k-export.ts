@@ -322,6 +322,9 @@ export class KExport {
         const articleTplFilePath = path.join(this.tplPath,'articles-template.html');
         const articleDstFilePath = path.join(this.dstPath,'articles.html');
         let repeaterArticleHtmlArr = [];
+
+        let articleItems:ArticleItem[] = [];
+
         // Walk each .md files in works
         for await (const mdfilePath of this.getFiles(articleSrcPath)) {
             const htmlFilePath = mdfilePath.replace('.md','.html');
@@ -332,7 +335,16 @@ export class KExport {
             const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
             const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
             const item = new ArticleItem(contents,relativeSrcDirPath, relativeHtmlPath);
-            
+            item.htmlFilePath = htmlFilePath;
+            articleItems.push(item);
+        }        
+
+        articleItems.sort((a:ArticleItem, b:ArticleItem)=>(new Date(b.date)).getTime()-(new Date(a.date)).getTime());
+
+
+
+        for(var i=0; i<articleItems.length; i++){
+            const item = articleItems[i];
             // Build up thumbnail html repeater
             if (item.title.toLowerCase().indexOf('(draft)') === -1 &&
                 item.tags.toLocaleLowerCase().indexOf('#unlisted') === -1 &&
@@ -347,7 +359,7 @@ export class KExport {
             genOutputHtml = genOutputHtml.replace(/<!-- {{{TITLE}}} -->/g,item.title);
             genOutputHtml = genOutputHtml.replace(/<!-- {{{SUBTITLE}}} -->/g,`(${item.getDateStr()})`);
             //genOutputHtml = genOutputHtml.replace(/<!-- {{{MDRAW}}} -->/g,`${genItem.mdraw}`); // https://github.com/markmap/markmap/tree/master/packages/markmap-autoloader
-            await fs.promises.writeFile(htmlFilePath,genOutputHtml);
+            await fs.promises.writeFile(item.htmlFilePath,genOutputHtml);
         }
 
         // articles.html

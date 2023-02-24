@@ -103,7 +103,7 @@ class ArticleItem extends GenericItem {
             }
             
         }
-        this.summary = (tmpSum.length > 300) ? tmpSum.substring(0,300) + ' &mldr; ' : tmpSum;
+        this.summary = Marked.parse((tmpSum.length > 300) ? tmpSum.substring(0,300) + ' &mldr; ' : tmpSum);
         this.filePath = inFilePath;
     }
     getDate(){
@@ -125,8 +125,7 @@ class ArticleItem extends GenericItem {
                         <div class="date-box"><span class="day">${this.getDate()}</span> <span class="month">${this.getMonth()}</span></div>
                         <div class="post-text">
                             <h3><a href="${this.filePath}">${this.title}</a></h3>
-                            ${this.summary}
-                            <br>
+                            <div class="post-summary">${this.summary}</div>
                             <a href="${this.filePath}" class="btn-text">Read More</a>
                         </div>
                     </div>

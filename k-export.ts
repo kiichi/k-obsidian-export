@@ -90,7 +90,9 @@ class ArticleItem extends GenericItem {
                 }
                 else if (line.startsWith('![](')){
                     const cleaned = line.replace('![](','').replace(')','');
-                    this.image =  path.join(inDirPath, cleaned);
+                    if (!this.image){
+                        this.image =  path.join(inDirPath, cleaned);
+                    }
                 }
                 else if (line.startsWith('# ')){
                     // nothing

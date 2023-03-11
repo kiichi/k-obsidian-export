@@ -297,13 +297,14 @@ export class KExport {
         for(var i=0; i<workItems.length; i++){
             const item = workItems[i];
             repeaterHtmlArr.push(item.getRepeaterHtml());
-
+            //console.log(item.title);
             // Each MD -> HTML
             let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,item.getHtml());
             genOutputHtml = genOutputHtml.replace(/<!-- {{{COPYRIGHT}}} -->/g,'© Copyright '+(new Date()).getFullYear()+' - Kiichi Takeuchi');
             genOutputHtml = genOutputHtml.replace(/<!-- {{{CATEGORY}}} -->/g,'Works');
             genOutputHtml = genOutputHtml.replace(/<!-- {{{TITLE}}} -->/g,item.title);
             genOutputHtml = genOutputHtml.replace(/<!-- {{{SUBTITLE}}} -->/g,`(${item.date})`);
+            genOutputHtml = genOutputHtml.replace(/{{{PAGETYPE}}}/g,'work'); // class name in container tag
             await fs.promises.writeFile(item.htmlFilePath,genOutputHtml);
         }        
 
@@ -355,9 +356,10 @@ export class KExport {
             // Each MD -> HTML
             let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,item.getHtml());
             genOutputHtml = genOutputHtml.replace(/<!-- {{{COPYRIGHT}}} -->/g,'© Copyright '+(new Date()).getFullYear()+' - Kiichi Takeuchi');
-            genOutputHtml = genOutputHtml.replace(/<!-- {{{CATEGORY}}} -->/g,'Works');
+            genOutputHtml = genOutputHtml.replace(/<!-- {{{CATEGORY}}} -->/g,'Article');
             genOutputHtml = genOutputHtml.replace(/<!-- {{{TITLE}}} -->/g,item.title);
             genOutputHtml = genOutputHtml.replace(/<!-- {{{SUBTITLE}}} -->/g,`(${item.getDateStr()})`);
+            genOutputHtml = genOutputHtml.replace(/{{{PAGETYPE}}}/g,'article'); // class name in container tag
             //genOutputHtml = genOutputHtml.replace(/<!-- {{{MDRAW}}} -->/g,`${genItem.mdraw}`); // https://github.com/markmap/markmap/tree/master/packages/markmap-autoloader
             await fs.promises.writeFile(item.htmlFilePath,genOutputHtml);
         }

@@ -275,19 +275,21 @@ export class KExport {
         // Walk each .md files in works
         for await (const mdfilePath of this.getFiles(workSrcPath)) {
             const htmlFilePath = mdfilePath.replace('.md','.html');
-            const contents = await fs.promises.readFile(mdfilePath,'utf-8');
-            // Calculate relative path - full path minus workfolder. 
-            // this is needed to point thumbnail image path from the root of website to works/ ... folder
-            const dirpath = path.dirname(mdfilePath);
-            const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
-            const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
-
-            //console.log(relativeSrcDirPath);
-
-            const item = new GalleryItem(contents, relativeSrcDirPath, relativeHtmlPath);
-            // TEMP: think about how to manage all full path vs relative path (contents wise)
-            item.htmlFilePath = htmlFilePath;
-            workItems.push(item);
+            try {                           
+                const contents = await fs.promises.readFile(mdfilePath,'utf-8');
+                // Calculate relative path - full path minus workfolder. 
+                // this is needed to point thumbnail image path from the root of website to works/ ... folder
+                const dirpath = path.dirname(mdfilePath);
+                const relativeSrcDirPath = dirpath.replace(this.srcPath,'');
+                const relativeHtmlPath = htmlFilePath.replace(this.srcPath,'');
+                const item = new GalleryItem(contents, relativeSrcDirPath, relativeHtmlPath);
+                // TEMP: think about how to manage all full path vs relative path (contents wise)
+                item.htmlFilePath = htmlFilePath;
+                workItems.push(item);
+            }
+            catch(e){
+                console.error(e, htmlFilePath);
+            }
         }
 
 

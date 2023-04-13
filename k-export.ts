@@ -103,7 +103,7 @@ class ArticleItem extends GenericItem {
             }
             
         }
-        this.summary = Marked.parse((tmpSum.length > 300) ? tmpSum.substring(0,300) + ' &mldr; ' : tmpSum);
+        this.summary = Marked.parse((tmpSum.length > 260) ? tmpSum.substring(0,260) + ' &mldr; ' : tmpSum);
         this.filePath = inFilePath;
     }
     getDate(){
@@ -117,7 +117,7 @@ class ArticleItem extends GenericItem {
     }
     getRepeaterHtml(){
         return `
-        <div class="col-md-4 bloglist ${this.tags.replace('#','')}">
+        <div class="col-md-4 bloglist ${this.tags.replace(/#/gi,'')}">
                 <div class="post-content">
                         <div class="post-image">
                             <img src="${this.image}" alt="" draggable="false">
@@ -207,6 +207,9 @@ class GalleryItem extends GenericItem {
             throw new Error(`Image Not Found ${this.mdraw}`);
         }
         const cleaned = data['Images'][0].replace('![](','').replace(')','');
+        if (cleaned.indexOf("!") != -1){
+            console.error("ERROR " + this.title + " " + cleaned);
+        }
         this.thumbnail = path.join(inRelativePath, cleaned);
         this.fullimage = this.thumbnail;
         this.htmlpath = inRelativeHtmlPath;
@@ -298,7 +301,11 @@ export class KExport {
 
         for(var i=0; i<workItems.length; i++){
             const item = workItems[i];
-            repeaterHtmlArr.push(item.getRepeaterHtml());
+            if (item.title.toLowerCase().indexOf('(draft)') === -1 &&
+            item.tags.toLocaleLowerCase().indexOf('#unlisted') === -1 &&
+            item.tags.toLocaleLowerCase().indexOf('#draft') === -1){
+                repeaterHtmlArr.push(item.getRepeaterHtml());
+            }
             //console.log(item.title);
             // Each MD -> HTML
             let genOutputHtml = genTemplateHtml.replace(/<!-- {{{CONTENT}}} -->/,item.getHtml());
@@ -343,8 +350,6 @@ export class KExport {
         }        
 
         articleItems.sort((a:ArticleItem, b:ArticleItem)=>(new Date(b.date)).getTime()-(new Date(a.date)).getTime());
-
-
 
         for(var i=0; i<articleItems.length; i++){
             const item = articleItems[i];

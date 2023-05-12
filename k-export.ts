@@ -231,9 +231,9 @@ class GalleryItem extends GenericItem {
                         <div class="project-name">${this.title}</div>
                         <div>Date: ${this.date}</div>
                         <div>Place: ${this.place}</div>
-                        <div>Medium: ${this.description}</div>
+                        <div>Medium: ${this.medium}</div>
                         <div>Dimensions: ${this.dimensions}</div>
-                        <div>${this.sold ? 'SOLD' : ''}</div>
+                        <div title="Sold or Donated>${this.sold ? '*' : ''}</div>
                         <!-- <div>No: ${this.no}</div> -->
                     </span>
                 </span>

@@ -103,7 +103,7 @@ class ArticleItem extends GenericItem {
             }
             
         }
-        this.summary = Marked.parse((tmpSum.length > 260) ? tmpSum.substring(0,260) + ' &mldr; ' : tmpSum);
+        this.summary = Marked.parse((tmpSum.length > 250) ? tmpSum.substring(0,250) + ' &mldr; ' : tmpSum);
         this.filePath = inFilePath;
     }
     getDate(){
@@ -233,7 +233,7 @@ class GalleryItem extends GenericItem {
                         <div>Place: ${this.place}</div>
                         <div>Medium: ${this.medium}</div>
                         <div>Dimensions: ${this.dimensions}</div>
-                        <div title="Sold or Donated>${this.sold ? '*' : ''}</div>
+                        <div title="Sold or Donated">${this.sold ? '*' : ''}</div>
                         <!-- <div>No: ${this.no}</div> -->
                     </span>
                 </span>

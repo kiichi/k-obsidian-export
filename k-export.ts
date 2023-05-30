@@ -17,6 +17,9 @@ class MyRenderer extends Renderer {
     return super.image(href,title,text);
   }
   link(href: string, title: string, text: string): string {
+    if (href.endsWith(".md")){
+        return super.link(href.replace(".md",".html"),title, text);
+    }
     if (href.startsWith("https://youtu.be/") || href.startsWith("https://www.youtube.com/watch?v=")){
         const videoId = href.replace("https://youtu.be/",'').replace("https://www.youtube.com/watch?v=",'');
         return `
